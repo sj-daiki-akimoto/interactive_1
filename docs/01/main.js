@@ -36,6 +36,8 @@ dotPos = {
 // 画面全体
 stage = $('.mv')
 
+body = $('body')
+
 function update() {
 
   // 画面サイズ
@@ -47,22 +49,45 @@ function update() {
   tx = mouse.x;
   ty = mouse.y;
 
-  dotPos.x = tx;
-  dotPos.y = ty;
+  // 目標値にだんだんと近づける
+  ease = 0.15; // こいつが小さいとよりゆっくりと近くようになる
+  dotPos.x += (tx - dotPos.x) * ease;
+  dotPos.y += (ty - dotPos.y) * ease;
+
+  // ２地点の距離
+  dx = tx - dotPos.x;
+  dy = ty - dotPos.y;
+  dist = Math.sqrt(dx * dx + dy * dy);
+
+  // スケール
+  scale = map(dist, 1, 4, 0, sw * 0.25);
+
+  // 背景色
+  alpha = map(dist, 0, 1, 0, sw * 0.1);
+  backgroundColor1 = lerpColor({r:30,g:176,b:255}, {r:211,g:47,b:47}, alpha);
+  backgroundColor2 = lerpColor({r:100,g:36,b:30}, {r:0,g:137,b:137}, alpha);
+  backgroundColor3 = lerpColor({r:20,g:100,b:30}, {r:100,g:17,b:17}, alpha);
 
   // オブジェクトの情報更新
   // 位置指定時、基準点を真ん中にするためサイズの半分だけずらす
   TweenMax.set(dot, {
     x:dotPos.x - dot.width() * 0.5,
     y:dotPos.y - dot.height() * 0.5,
-    scale:1,
-    borderWidth:0,
-    backgroundColor:'#ff0000'
+    scale:scale,
+    borderWidth:dist,
+    rotation:dist*-1,
+    backgroundColor:backgroundColor1
   });
 
-  // 画面全体
+  TweenMax.set(body, {
+    backgroundColor:backgroundColor2
+  });
+
   TweenMax.set(stage, {
-    borderWidth:0
+    borderWidth:dist,
+    scale:scale - 0.1,
+    rotation:dist,
+    backgroundColor:backgroundColor3
   });
 
   window.requestAnimationFrame(update);
